@@ -5,12 +5,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 import threading
+import os
 
 app = Flask(__name__)
 
 def check_card(card):
-    # Kart işlemi için selenium scripti burada
-    # Basit örnek, kendi donate.py kodunu buraya uyarlamalısın
     card_data = card.split("|")
     card_number, expiry_month, expiry_year, cvv = card_data
 
@@ -24,12 +23,10 @@ def check_card(card):
     driver = webdriver.Chrome(options=chrome_options)
     wait = WebDriverWait(driver, 25)
 
-    # Selenium işlemleri buraya...
-    # Örneğin:
     driver.get("https://www.justgiving.com/page/ali-bevans-teamtoby")
-    # vs.
 
-    # Örnek olarak sadece kapatıyoruz
+    # Selenium işlemleri burada devam edecek...
+
     driver.quit()
 
     return "Kart kontrolü tamamlandı: " + card_number
@@ -39,11 +36,15 @@ def index():
     if request.method == "POST":
         card = request.form.get("card")
         if card:
-            # Arka planda thread ile çalıştırabiliriz
             threading.Thread(target=check_card, args=(card,)).start()
             return jsonify({"status": "İşlem başladı", "card": card})
         return jsonify({"error": "Kart bilgisi yok"})
     return render_template("index.html")
 
+@app.route("/healthz")
+def health_check():
+    return "OK", 200
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
